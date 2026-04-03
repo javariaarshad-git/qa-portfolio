@@ -1,0 +1,14 @@
+﻿test_case,email,name,password,expected_status
+empty Email only,,Ali Khan,123456,Email cannot be empty
+empty Email only,null,Ali Khan,123456,Email cannot be empty
+empty Email only,omit,Ali Khan,123456,Email cannot be empty
+empty Fullname only,ali@test.com,,123456,Fullname cannot be empty
+empty Fullname only,ali@test.com,null,123456,Fullname cannot be empty
+empty Fullname only,ali@test.com,omit,123456,Fullname cannot be empty
+empty Password only,ali@test.com,Ali Khan,,Password cannot be empty
+empty Password only,ali@test.com,Ali Khan,nul,Password cannot be empty
+empty Password only,ali@test.com,Ali Khan,omit,Password cannot be empty
+only email filled,ali@test.com,omit,omit,Please fill in all mandatory fields
+only Fullname filled,omit,Ali Khan,omit,Please fill in all mandatory fields
+only Password filled,omit,omit,123456,Please fill in all mandatory fields
+all fields are empty,omit,omit,omit,Please fill in all mandatory fields

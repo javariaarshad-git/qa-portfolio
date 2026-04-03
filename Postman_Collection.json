@@ -1,0 +1,355 @@
+{
+  "info": {
+    "_postman_id": "f83a28f9-2180-4040-8d30-65f74641b03d",
+    "name": "QA Hiring Assignment",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44275834",
+    "_collection_link": "https://go.postman.co/collection/44275834-f83a28f9-2180-4040-8d30-65f74641b03d?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Successful Registration + Schema Validation",
+      "item": [
+        {
+          "name": "TC_API_REG_001 :: Valid Registration + Schema Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Valid Registration :: Status code is 201\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Valid Registration :: Response time is less than 3s\", function () {\r",
+                  "    const currentRequestName = pm.info.requestName;\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);\r",
+                  "});\r",
+                  "\r",
+                  "let sentName = pm.variables.get(\"name\");\r",
+                  "let sentEmail = pm.variables.get(\"email\");\r",
+                  "let sentPassword = pm.variables.get(\"password\");\r",
+                  "let jsonData = pm.response.json();\r",
+                  "\r",
+                  "/*to check if schema of recieved response matches the following format\r",
+                  "{\r",
+                  "    \"status\": \"success\",\r",
+                  "    \"user_id\": 101\r",
+                  "\r",
+                  "}*/\r",
+                  "var schema = {\r",
+                  "  type: \"object\",\r",
+                  "  required: [\"status\", \"user_id\"],\r",
+                  "  properties: {\r",
+                  "    status: { type: \"string\" },\r",
+                  "    user_id: { type: \"integer\" }\r",
+                  "  }\r",
+                  "};\r",
+                  "\r",
+                  "// Validate using Ajv library\r",
+                  "var Ajv = require('ajv');\r",
+                  "var ajv = new Ajv({ allErrors: true });\r",
+                  "\r",
+                  "pm.test(\"Valid Registration: Validate Schema : \"+sentEmail+\" :: \"+sentName+\" :: \"+sentPassword+\" :: response matches schema\", function () {\r",
+                  "    var validate = ajv.compile(schema);\r",
+                  "    var valid = validate(jsonData);\r",
+                  "\r",
+                  "    // Fail the test if schema doesn't match\r",
+                  "    pm.expect(valid, JSON.stringify(validate.errors)).to.be.true;\r",
+                  "\r",
+                  "    // Proceed only if valid\r",
+                  "    if (valid) {\r",
+                  "        pm.expect(jsonData.status).to.eql(\"success\");\r",
+                  "        pm.expect(jsonData.user_id).to.be.a(\"number\");\r",
+                  "    }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set(\"email\", \"ali@test.com\");\r",
+                  "pm.variables.set(\"name\",\"Ali Khan\");\r",
+                  "pm.variables.set(\"password\",\"123456\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"{{name}}\",\r\n  \"email\": \"{{email}}\",\r\n  \"password\": \"{{password}}\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_test_url}}{{register_api}}",
+              "host": [
+                "{{base_test_url}}{{register_api}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "MIssing Mandatory Fields - DDT",
+      "item": [
+        {
+          "name": "TC_API_REG_002 :: Missing Mandatory Fields",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "//Access the current iteration data from the CSV file\r",
+                  "const email = pm.iterationData.get(\"email\");\r",
+                  "const name = pm.iterationData.get(\"name\");\r",
+                  "const password = pm.iterationData.get(\"password\");\r",
+                  "\r",
+                  "//Create the request body dynamically\r",
+                  "const body = {}\r",
+                  "\r",
+                  "if(email !== \"omit\"){\r",
+                  "    body.email = email===\"null\" ? null:email;\r",
+                  "}\r",
+                  "\r",
+                  "if(name !== \"omit\"){\r",
+                  "    body.name = name===\"null\" ? null:name;\r",
+                  "}\r",
+                  "\r",
+                  "if(password !== \"omit\"){\r",
+                  "    body.password = password===\"null\" ? null:password;\r",
+                  "}\r",
+                  "\r",
+                  "//set the body\r",
+                  "pm.request.body.raw = JSON.stringify(body);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//Access the current iteration data from the CSV file\r",
+                  "const email = pm.iterationData.get(\"email\");\r",
+                  "const name = pm.iterationData.get(\"name\");\r",
+                  "const password = pm.iterationData.get(\"password\");\r",
+                  "const testCase = pm.iterationData.get(\"test_case\");\r",
+                  "const expected_status = pm.iterationData.get(\"expected_status\");\r",
+                  "\r",
+                  "pm.test(testCase+\" :: Status code is 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(testCase+\" :: Response time is less than 3s\", function () {\r",
+                  "    const currentRequestName = pm.info.requestName;\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);\r",
+                  "});\r",
+                  "\r",
+                  "const jsonData = pm.response.json();\r",
+                  "pm.test(testCase+\" :: response status\", function(){\r",
+                  "    pm.expect(jsonData.status).to.equal(expected_status);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_test_url}}{{register_api}}",
+              "host": [
+                "{{base_test_url}}{{register_api}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Register + Login - Chained Request",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set(\"email\", \"ali@test.com\");\r",
+                  "pm.variables.set(\"name\", \"Ali\");\r",
+                  "pm.variables.set(\"password\", \"123456\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Register :: Status code is 201\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Register:: Response time is less than 3s\", function () {\r",
+                  "    const currentRequestName = pm.info.requestName;\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"{{name}}\",\r\n  \"email\": \"{{email}}\",\r\n  \"password\": \"{{password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_test_url}}{{register_api}}",
+              "host": [
+                "{{base_test_url}}{{register_api}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login :: Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Login ::Response time is less than 3s\", function () {\r",
+                  "    const currentRequestName = pm.info.requestName;\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{email}}\",\r\n  \"password\": \"{{password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_test_url}}{{login_api}}",
+              "host": [
+                "{{base_test_url}}{{login_api}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "email",
+      "value": ""
+    },
+    {
+      "key": "name",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    }
+  ]
+}
